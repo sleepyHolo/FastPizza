@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://busm2leuhmurf"]
+
+[ext_resource type="Script" uid="uid://h3iw02q7p6wn" path="res://content/path_system/path_system.gd" id="1_yknd2"]
+
+[node name="PathSystem" type="Node2D" unique_id=862987973]
+script = ExtResource("1_yknd2")
+metadata/_custom_type_script = "uid://h3iw02q7p6wn"
