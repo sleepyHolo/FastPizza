@@ -11,7 +11,7 @@ var _map_grid_size_inv := Vector2(
 var debug_color := Color(0.8, 0.16, 0.16, 1.0)
 
 var source_radius: float = 20.0
-var sink_radius:   float = 16.0
+var sink_radius:   float = 18.0
 var sink_width:    float = 4.0
 
 func check_grid_pos(grid_pos: Vector2i) -> bool:
