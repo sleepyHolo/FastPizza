@@ -56,5 +56,5 @@ func draw_node(global_pos: Vector2, is_source: bool) -> void:
         Settings.source_radius if is_source else Settings.sink_radius,
         Settings.debug_color,
         is_source,
-        Settings.sink_width
+        -1.0 if is_source else Settings.sink_width
     )
