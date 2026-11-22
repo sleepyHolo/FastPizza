@@ -3,6 +3,8 @@ extends Node
 var map_size_max: Vector2i = Vector2i(128, 64)
 var map_grid_size: Vector2i = Vector2i(64, 64)
 
+var DIRTY_DATA_INDEX = map_size_max.x * map_size_max.y
+
 var _map_grid_size_inv := Vector2(
     1.0 / map_grid_size.x, 
     1.0 / map_grid_size.y
@@ -19,11 +21,13 @@ func check_grid_pos(grid_pos: Vector2i) -> bool:
         and grid_pos.y >= 0 and grid_pos.y < map_size_max.y
 
 
-func get_grid_number() -> int:
-    return map_size_max.x * map_size_max.y
+func get_map_size() -> int:
+    return DIRTY_DATA_INDEX + 1
 
 
 func get_grid_index(grid_pos: Vector2i) -> int:
+    if not check_grid_pos(grid_pos):
+        return DIRTY_DATA_INDEX
     return grid_pos.x + grid_pos.y * map_size_max.x
 
 

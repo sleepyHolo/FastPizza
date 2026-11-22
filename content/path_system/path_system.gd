@@ -8,8 +8,10 @@ var path_linking: bool = false
 var linking_paths : Array[Vector2i] = []
 var line_end := Vector2i(-1, -1)
 
+var unselecting: bool = false
+
 func _ready() -> void:
-    _grid_data.resize(Settings.get_grid_number())
+    _grid_data.resize(Settings.get_map_size())
 
 
 func _draw() -> void:
@@ -39,6 +41,9 @@ func _draw() -> void:
 
 
 func _physics_process(delta: float) -> void:
+    if unselecting:
+        remove_path(Settings.get_grid_pos(get_global_mouse_position()))
+        # todo caculate used path
     queue_redraw()
 
 
@@ -60,12 +65,21 @@ func _unhandled_input(event: InputEvent) -> void:
             var to: Vector2i = linking_paths.get(i + 1)
             _grid_data[Settings.get_grid_index(from)] |= path_diff(from, to)
             _grid_data[Settings.get_grid_index(to)] |= path_diff(to, from)
+        # todo caculate used path
         linking_paths.clear()
         line_end = Vector2i(-1, -1)
         get_viewport().set_input_as_handled()
         return
     if event is InputEventMouseMotion and path_linking:
         extend_to(Settings.get_grid_pos(get_global_mouse_position()))
+        get_viewport().set_input_as_handled()
+        return
+    if event.is_action_pressed("unselect"):
+        unselecting = true
+        get_viewport().set_input_as_handled()
+        return
+    if event.is_action_released("unselect"):
+        unselecting = false
         get_viewport().set_input_as_handled()
         return
 
@@ -82,6 +96,20 @@ func path_diff(from: Vector2i, to: Vector2i) -> int:
     if diff == Vector2i(0, -1):
         return 0b1000
     return 0
+
+
+func remove_path(grid: Vector2i) -> void:
+    var data := _grid_data.get(Settings.get_grid_index(grid))
+    if data & 0b1111:
+        _grid_data[Settings.get_grid_index(grid)] = (data >> 4) << 4
+        _grid_data[Settings.get_grid_index(grid + Vector2i(-1, 0))] \
+            &= ~(0b0001)
+        _grid_data[Settings.get_grid_index(grid + Vector2i(0, -1))] \
+            &= ~(0b0010)
+        _grid_data[Settings.get_grid_index(grid + Vector2i(1, 0))] \
+            &= ~(0b0100)
+        _grid_data[Settings.get_grid_index(grid + Vector2i(0, 1))] \
+            &= ~(0b1000)
 
 
 func debug_edit_path_node(event: InputEventMouseButton) -> void:
