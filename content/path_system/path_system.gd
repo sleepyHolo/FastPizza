@@ -3,7 +3,6 @@ extends Node2D
 
 var _grid_data: PackedByteArray
 var _path_nodes: Dictionary[int, Node2D] = {}
-var _astar: ManhattanAStar2D
 
 var path_linking: bool = false
 var linking_paths : Array[Vector2i] = []
@@ -24,8 +23,6 @@ const IS_SINK    := 0b100000
 
 func _ready() -> void:
     _grid_data.resize(Settings.get_map_size())
-    _astar = ManhattanAStar2D.new()
-    build_astar()
 
 
 func _draw() -> void:
@@ -81,8 +78,6 @@ func _unhandled_input(event: InputEvent) -> void:
             var to: Vector2i = linking_paths.get(i + 1)
             _grid_data[Settings.get_grid_index(from)] |= path_diff(from, to)
             _grid_data[Settings.get_grid_index(to)] |= path_diff(to, from)
-        for grid : Vector2i in linking_paths:
-            update_aster_around_grid(grid)
         # todo caculate used path
         linking_paths.clear()
         line_end = Vector2i(-1, -1)
@@ -99,48 +94,6 @@ func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_released("unselect"):
         unselecting = false
         get_viewport().set_input_as_handled()
-        return
-
-
-func build_astar() -> void:
-    _astar.clear()
-    for x in Settings.map_grid_size.x:
-        for y in Settings.map_grid_size.y:
-            _astar.add_point(
-                Settings.get_grid_index(Vector2i(x, y)),
-                Settings.get_grid_pos(Vector2i(x, y)),
-            )
-            # link -x and -y
-            var data := _grid_data.get(Settings.get_grid_index(Vector2i(x, y)))
-            if data & LINK_NEG_X:
-                _astar.connect_points(
-                    Settings.get_grid_index(Vector2i(x, y)),
-                    Settings.get_grid_index(Vector2i(x - 1, y)),
-                )
-            if data & LINK_NEG_Y:
-                _astar.connect_points(
-                    Settings.get_grid_index(Vector2i(x, y)),
-                    Settings.get_grid_index(Vector2i(x, y - 1)),
-                )
-
-
-func update_aster_around_grid(grid: Vector2i) -> void:
-    update_aster_link(grid, Vector2i(1, 0))
-    update_aster_link(grid, Vector2i(0, 1))
-    update_aster_link(grid, Vector2i(-1, 0))
-    update_aster_link(grid, Vector2i(0, -1))
-        
-
-func update_aster_link(grid: Vector2i, diff: Vector2i) -> void:
-    var data := _grid_data.get(Settings.get_grid_index(grid))
-    var magic := path_diff(diff, Vector2i.ZERO)
-    var from := Settings.get_grid_index(grid)
-    var to := Settings.get_grid_index(grid + diff)
-    if (data & magic) and (not _astar.are_points_connected(from, to)):
-        _astar.connect_points(from, to)
-        return
-    if not (data & magic) and _astar.are_points_connected(from, to):
-        _astar.disconnect_points(from, to)
         return
 
 
@@ -170,7 +123,6 @@ func remove_path(grid: Vector2i) -> void:
             &= ~LINK_NEG_X
         _grid_data[Settings.get_grid_index(grid + Vector2i(0, 1))] \
             &= ~LINK_NEG_Y
-        update_aster_around_grid(grid)
 
 
 func remove_node(grid: Vector2i) -> void:
