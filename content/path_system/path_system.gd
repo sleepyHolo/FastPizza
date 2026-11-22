@@ -10,6 +10,14 @@ var line_end := Vector2i(-1, -1)
 
 var unselecting: bool = false
 
+const LINK_POS_X := 0b0001
+const LINK_POS_Y := 0b0010
+const LINK_NEG_X := 0b0100
+const LINK_NEG_Y := 0b1000
+
+const IS_SOURCE  := 0b010000
+const IS_SINK    := 0b100000
+
 func _ready() -> void:
     _grid_data.resize(Settings.get_map_size())
 
@@ -24,10 +32,10 @@ func _draw() -> void:
     for x in Settings.map_grid_size.x:
         for y in Settings.map_grid_size.y:
             var tmp := _grid_data.get(Settings.get_grid_index(Vector2i(x, y)))
-            if tmp & 0b01:
+            if tmp & LINK_POS_X:
                 pts.append(Settings.get_global_pos(Vector2i(x, y)))
                 pts.append(Settings.get_global_pos(Vector2i(x + 1, y)))
-            if tmp & 0b10:
+            if tmp & LINK_POS_Y:
                 pts.append(Settings.get_global_pos(Vector2i(x, y)))
                 pts.append(Settings.get_global_pos(Vector2i(x, y + 1)))
     if not pts.is_empty():
@@ -88,13 +96,13 @@ func path_diff(from: Vector2i, to: Vector2i) -> int:
     var diff := to - from
     assert(diff.length_squared() == 1)
     if diff == Vector2i(1, 0):
-        return 0b0001
+        return LINK_POS_X
     if diff == Vector2i(0, 1):
-        return 0b0010
+        return LINK_POS_Y
     if diff == Vector2i(-1, 0):
-        return 0b0100
+        return LINK_NEG_X
     if diff == Vector2i(0, -1):
-        return 0b1000
+        return LINK_NEG_Y
     return 0
 
 
@@ -103,13 +111,13 @@ func remove_path(grid: Vector2i) -> void:
     if data & 0b1111:
         _grid_data[Settings.get_grid_index(grid)] = (data >> 4) << 4
         _grid_data[Settings.get_grid_index(grid + Vector2i(-1, 0))] \
-            &= ~(0b0001)
+            &= ~(LINK_POS_X)
         _grid_data[Settings.get_grid_index(grid + Vector2i(0, -1))] \
-            &= ~(0b0010)
+            &= ~(LINK_POS_Y)
         _grid_data[Settings.get_grid_index(grid + Vector2i(1, 0))] \
-            &= ~(0b0100)
+            &= ~(LINK_NEG_X)
         _grid_data[Settings.get_grid_index(grid + Vector2i(0, 1))] \
-            &= ~(0b1000)
+            &= ~(LINK_NEG_Y)
 
 
 func debug_edit_path_node(event: InputEventMouseButton) -> void:
