@@ -10,11 +10,13 @@ var line_end := Vector2i(-1, -1)
 
 var unselecting: bool = false
 
+const LINK_DEF   := 0b1111
 const LINK_POS_X := 0b0001
 const LINK_POS_Y := 0b0010
 const LINK_NEG_X := 0b0100
 const LINK_NEG_Y := 0b1000
 
+const TILE_DEF   := 0b110000
 const IS_SOURCE  := 0b010000
 const IS_SINK    := 0b100000
 
@@ -52,6 +54,8 @@ func _physics_process(delta: float) -> void:
     if unselecting:
         remove_path(Settings.get_grid_pos(get_global_mouse_position()))
         # todo caculate used path
+        if OS.is_debug_build():
+            remove_node(Settings.get_grid_pos(get_global_mouse_position()))
     queue_redraw()
 
 
@@ -108,16 +112,27 @@ func path_diff(from: Vector2i, to: Vector2i) -> int:
 
 func remove_path(grid: Vector2i) -> void:
     var data := _grid_data.get(Settings.get_grid_index(grid))
-    if data & 0b1111:
+    if data & LINK_DEF:
         _grid_data[Settings.get_grid_index(grid)] = (data >> 4) << 4
         _grid_data[Settings.get_grid_index(grid + Vector2i(-1, 0))] \
-            &= ~(LINK_POS_X)
+            &= ~LINK_POS_X
         _grid_data[Settings.get_grid_index(grid + Vector2i(0, -1))] \
-            &= ~(LINK_POS_Y)
+            &= ~LINK_POS_Y
         _grid_data[Settings.get_grid_index(grid + Vector2i(1, 0))] \
-            &= ~(LINK_NEG_X)
+            &= ~LINK_NEG_X
         _grid_data[Settings.get_grid_index(grid + Vector2i(0, 1))] \
-            &= ~(LINK_NEG_Y)
+            &= ~LINK_NEG_Y
+
+
+func remove_node(grid: Vector2i) -> void:
+    var id := Settings.get_grid_index(grid)
+    var data := _grid_data.get(id)
+    if (data & TILE_DEF) == IS_SOURCE or (data & TILE_DEF) == IS_SINK:
+        assert(_path_nodes.has(id))
+        _grid_data[id] &= ~TILE_DEF
+        remove_child(_path_nodes.get(id))
+        _path_nodes.erase(id)
+        remove_path(grid)
 
 
 func debug_edit_path_node(event: InputEventMouseButton) -> void:
@@ -174,6 +189,8 @@ func get_line_grids(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 func walkable(target: Vector2i) -> bool:
     if not Settings.check_grid_pos(target):
         return false
+    if _grid_data.get(Settings.get_grid_index(target)) & TILE_DEF:
+        return false
     return true
     
 
@@ -182,12 +199,19 @@ func spawn_node(grid_pos: Vector2i, is_source: bool) -> void:
         return
     var id := Settings.get_grid_index(grid_pos)
     if not _path_nodes.has(id):
+        _grid_data[id] = (_grid_data[id] >> 6) << 6
         if is_source:
             _path_nodes[id] = Source.new(grid_pos)
+            _grid_data[id] |= IS_SOURCE
             print("add a source at %s" % grid_pos)
         else:
             _path_nodes[id] = Sink.new(grid_pos)
+            _grid_data[id] |= IS_SINK
             print("add a sink   at %s" % grid_pos)
+        # todo add rototation 
+        _grid_data[id] |= LINK_POS_X
+        _grid_data[Settings.get_grid_index(grid_pos + Vector2i.RIGHT)] \
+            |= LINK_NEG_X
         add_child(_path_nodes[id])
         # todo log
 
