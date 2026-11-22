@@ -1,7 +1,7 @@
 class_name PathSystem
 extends Node2D
 
-var _grid_path_8: PackedByteArray
+var _grid_data: PackedByteArray
 var _path_nodes: Dictionary[int, Node2D] = {}
 
 var path_linking: bool = false
@@ -9,7 +9,7 @@ var linking_paths : Array[Vector2i] = []
 var line_end := Vector2i(-1, -1)
 
 func _ready() -> void:
-    _grid_path_8.resize(Settings.get_grid_number())
+    _grid_data.resize(Settings.get_grid_number())
 
 
 func _draw() -> void:
@@ -17,8 +17,21 @@ func _draw() -> void:
         return
     for id : int in _path_nodes:
         draw_node(_path_nodes[id].position, _path_nodes[id] is Source)
+    # build linked lines
     var pts := PackedVector2Array()
+    for x in Settings.map_grid_size.x:
+        for y in Settings.map_grid_size.y:
+            var tmp := _grid_data.get(Settings.get_grid_index(Vector2i(x, y)))
+            if tmp & 0b01:
+                pts.append(Settings.get_global_pos(Vector2i(x, y)))
+                pts.append(Settings.get_global_pos(Vector2i(x + 1, y)))
+            if tmp & 0b10:
+                pts.append(Settings.get_global_pos(Vector2i(x, y)))
+                pts.append(Settings.get_global_pos(Vector2i(x, y + 1)))
+    if not pts.is_empty():
+        draw_multiline(pts, Settings.debug_color, 6.0)
     # linking lines
+    pts.clear()
     if linking_paths.size() > 1:
         for grid_pos in linking_paths:
             pts.append(Settings.get_global_pos(grid_pos))
@@ -42,12 +55,33 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     if path_linking and event.is_action_released("select"):
         path_linking = false
+        for i : int in linking_paths.size() - 1:
+            var from: Vector2i = linking_paths.get(i)
+            var to: Vector2i = linking_paths.get(i + 1)
+            _grid_data[Settings.get_grid_index(from)] |= path_diff(from, to)
+            _grid_data[Settings.get_grid_index(to)] |= path_diff(to, from)
+        linking_paths.clear()
+        line_end = Vector2i(-1, -1)
         get_viewport().set_input_as_handled()
         return
     if event is InputEventMouseMotion and path_linking:
         extend_to(Settings.get_grid_pos(get_global_mouse_position()))
         get_viewport().set_input_as_handled()
         return
+
+
+func path_diff(from: Vector2i, to: Vector2i) -> int:
+    var diff := to - from
+    assert(diff.length_squared() == 1)
+    if diff == Vector2i(1, 0):
+        return 0b0001
+    if diff == Vector2i(0, 1):
+        return 0b0010
+    if diff == Vector2i(-1, 0):
+        return 0b0100
+    if diff == Vector2i(0, -1):
+        return 0b1000
+    return 0
 
 
 func debug_edit_path_node(event: InputEventMouseButton) -> void:
