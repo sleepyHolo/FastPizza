@@ -21,6 +21,7 @@ const TILE_DEF   := 0b110000
 const IS_SOURCE  := 0b010000
 const IS_SINK    := 0b100000
 
+
 func _ready() -> void:
     _grid_data.resize(Settings.get_map_size())
     _astar = ManhattanAStar2D.new()

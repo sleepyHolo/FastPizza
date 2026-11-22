@@ -1,6 +1,6 @@
 extends Node
 
-var map_size_max: Vector2i = Vector2i(128, 64)
+var map_size_max: Vector2i = Vector2i(40, 25)
 var map_grid_size: Vector2i = Vector2i(64, 64)
 
 var DIRTY_DATA_INDEX = map_size_max.x * map_size_max.y
@@ -10,11 +10,14 @@ var _map_grid_size_inv := Vector2(
     1.0 / map_grid_size.y
     )
 
+# debug settings
 var debug_color := Color(0.8, 0.16, 0.16, 1.0)
 
 var source_radius: float = 20.0
 var sink_radius:   float = 18.0
 var sink_width:    float = 4.0
+var truck_radius:  float = 10.0
+
 
 func check_grid_pos(grid_pos: Vector2i) -> bool:
     return grid_pos.x >= 0 and grid_pos.x < map_size_max.x \
