@@ -28,7 +28,7 @@ func _ready() -> void:
     path_finder = PathFinder.new()
     path_finder.init_build(
         _grid_data,
-        1,
+        2,
     )
 
 
@@ -82,14 +82,7 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     if path_linking and event.is_action_released("select"):
         path_linking = false
-        for i : int in linking_paths.size() - 1:
-            var from: Vector2i = linking_paths.get(i)
-            var to: Vector2i = linking_paths.get(i + 1)
-            _grid_data[Settings.get_grid_index(from)] |= path_diff(from, to)
-            _grid_data[Settings.get_grid_index(to)] |= path_diff(to, from)
-        # todo caculate used path
-        linking_paths.clear()
-        line_end = Vector2i(-1, -1)
+        commit_path()
         get_viewport().set_input_as_handled()
         return
     if event is InputEventMouseMotion and path_linking:
@@ -120,6 +113,20 @@ func path_diff(from: Vector2i, to: Vector2i) -> int:
     return 0
 
 
+func commit_path() -> void:
+    if linking_paths.size() < 2:
+        linking_paths.clear()
+        return
+    for i : int in linking_paths.size() - 1:
+        var from: Vector2i = linking_paths.get(i)
+        var to: Vector2i = linking_paths.get(i + 1)
+        _grid_data[Settings.get_grid_index(from)] |= path_diff(from, to)
+        _grid_data[Settings.get_grid_index(to)] |= path_diff(to, from)
+    linking_paths.clear()
+    # todo caculate used path
+    path_finder.rebuild()
+
+
 func remove_path(grid: Vector2i) -> void:
     var data := _grid_data.get(Settings.get_grid_index(grid))
     if data & LINK_DEF:
@@ -132,6 +139,7 @@ func remove_path(grid: Vector2i) -> void:
             &= ~LINK_NEG_X
         _grid_data[Settings.get_grid_index(grid + Vector2i(0, 1))] \
             &= ~LINK_NEG_Y
+        path_finder.rebuild()
 
 
 func remove_node(grid: Vector2i) -> void:
@@ -204,7 +212,11 @@ func walkable(target: Vector2i) -> bool:
     return true
     
 
-func spawn_node(grid_pos: Vector2i, is_source: bool) -> void:
+func spawn_node(
+    grid_pos: Vector2i, 
+    is_source: bool,
+    source_color: int = 0,
+) -> void:
     if not Settings.check_grid_pos(grid_pos):
         return
     var id := Settings.get_grid_index(grid_pos)
@@ -213,17 +225,20 @@ func spawn_node(grid_pos: Vector2i, is_source: bool) -> void:
         if is_source:
             _path_nodes[id] = Source.new(grid_pos)
             _grid_data[id] |= IS_SOURCE
-            print("add a source at %s" % grid_pos)
+            path_finder.add_source(id, source_color)
         else:
             _path_nodes[id] = Sink.new(grid_pos)
             _grid_data[id] |= IS_SINK
-            print("add a sink   at %s" % grid_pos)
         # todo add rototation 
         _grid_data[id] |= LINK_POS_X
         _grid_data[Settings.get_grid_index(grid_pos + Vector2i.RIGHT)] \
             |= LINK_NEG_X
         add_child(_path_nodes[id])
-        # todo log
+        path_finder.rebuild()
+        LogFormatter.debug(
+            "add a %s at %s" % ["source" if is_source else "sink", grid_pos],
+            "PathSystem",
+        )
 
 
 func draw_node(global_pos: Vector2, is_source: bool) -> void:
@@ -250,6 +265,7 @@ class PathFinder extends RefCounted:
     var head: int = 0
     var peak: int = 0
     var usage: int = 0
+    var time_usage_us: int = 0
     
     
     func _init() -> void:
@@ -261,6 +277,7 @@ class PathFinder extends RefCounted:
         head = 0
         peak = 0
         usage = 0
+        time_usage_us = 0
     
     
     func _write(index: int, color: int) -> void:
@@ -326,6 +343,7 @@ class PathFinder extends RefCounted:
         if not rebuilding:
             return
         var step := 0
+        var tmp_time_start := Time.get_ticks_usec()
         while usage > 0 and step < caculate_limit:
             var cur := _read()
             for idx : int in get_linked_points(cur.x):
@@ -335,9 +353,24 @@ class PathFinder extends RefCounted:
                     continue
                 _write(idx, cur.y)
                 step += 1
+        time_usage_us += Time.get_ticks_usec() - tmp_time_start
         if usage == 0:
             rebuilding = false
-            LogFormatter.info("rebuild ended.", "PS.PathFinder")
+            LogFormatter.smart_info(
+                "rebuild ended.",
+                "PS.PathFinder",
+                "time usage       : %s us" % time_usage_us,
+                "buffer peak usage: %s" % peak,
+            )
+        return
+    
+    
+    func add_source(idx: int, color: int) -> void:
+        colored_sources.get(color).add_source(idx)    
+    
+    
+    func remove_source(idx: int, color: int) -> void:
+        colored_sources.get(color).remove_source(idx)
 
 
 class SourceDef extends RefCounted:
@@ -352,7 +385,13 @@ class SourceDef extends RefCounted:
     func add_source(idx: int) -> void:
         if sources.has(idx):
             return
-        sources.append(idx)
+        sources.append(idx)    
+    
+    
+    func remove_source(idx: int) -> void:
+        if not sources.has(idx):
+            return
+        sources.erase(idx)
     
     
     func reset() -> void:

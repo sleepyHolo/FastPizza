@@ -5,7 +5,7 @@ var formatted_msg := "> %s [%-*s] %-*s: %s"
 var level_fill: int = 5
 var from_fill:  int = 20
 
-var tail_msg_indents: int = 6
+var tail_msg_indent: StringName = &"      "
 
 var date: String = ""
 
@@ -39,7 +39,7 @@ func debug(
 ) -> void:
     _log_out(print, "DEBUG", from, msg)
     for arg : Variant in args:
-        print("%*s", tail_msg_indents, arg)
+        print(tail_msg_indent, arg)
 
 
 func smart_info(
