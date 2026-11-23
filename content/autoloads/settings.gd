@@ -18,6 +18,9 @@ var sink_radius:   float = 18.0
 var sink_width:    float = 4.0
 var truck_radius:  float = 10.0
 
+# path finder
+var ring_buffer_size: int = 1024
+
 
 func check_grid_pos(grid_pos: Vector2i) -> bool:
     return grid_pos.x >= 0 and grid_pos.x < map_size_max.x \

@@ -10,6 +10,8 @@ var line_end := Vector2i(-1, -1)
 
 var unselecting: bool = false
 
+var path_finder: PathFinder
+
 const LINK_DEF   := 0b1111
 const LINK_POS_X := 0b0001
 const LINK_POS_Y := 0b0010
@@ -23,6 +25,11 @@ const IS_SINK    := 0b100000
 
 func _ready() -> void:
     _grid_data.resize(Settings.get_map_size())
+    path_finder = PathFinder.new()
+    path_finder.init_build(
+        _grid_data,
+        1,
+    )
 
 
 func _draw() -> void:
@@ -52,6 +59,8 @@ func _draw() -> void:
 
 
 func _physics_process(delta: float) -> void:
+    path_finder.update()
+    
     if unselecting:
         remove_path(Settings.get_grid_pos(get_global_mouse_position()))
         # todo caculate used path
@@ -225,3 +234,132 @@ func draw_node(global_pos: Vector2, is_source: bool) -> void:
         is_source,
         -1.0 if is_source else Settings.sink_width
     )
+
+
+class PathFinder extends RefCounted:
+    
+    var _read_only_grid_data: PackedByteArray
+    var colored_sources: Array[SourceDef] = []
+    
+    # visiting_queue: (grid_idx, color)
+    var visiting_index := PackedInt32Array()
+    var visiting_color := PackedByteArray()
+    var rebuilding: bool = false
+    
+    # ring buffer
+    var head: int = 0
+    var peak: int = 0
+    var usage: int = 0
+    
+    
+    func _init() -> void:
+        visiting_index.resize(Settings.ring_buffer_size)
+        visiting_color.resize(Settings.ring_buffer_size)
+    
+    
+    func _reset_buff() -> void:
+        head = 0
+        peak = 0
+        usage = 0
+    
+    
+    func _write(index: int, color: int) -> void:
+        var write_idx := (head + usage) % Settings.ring_buffer_size
+        visiting_index[write_idx] = index
+        visiting_color[write_idx] = color
+        usage += 1
+        if usage > peak:
+            peak = usage
+    
+    
+    func _read() -> Vector2i:
+        if usage <= 0:
+            return Vector2i(-1, -1)
+        var read_idx = head % Settings.ring_buffer_size
+        var out := Vector2i(
+            visiting_index[read_idx],
+            visiting_color[read_idx],
+        )
+        head += 1
+        usage -= 1
+        return out
+    
+    
+    func get_linked_points(idx: int) -> Array[int]:
+        var x := idx % Settings.map_size_max.x
+        var y := floori(float(idx) / Settings.map_size_max.x)
+        var data := _read_only_grid_data.get(idx)
+        var out : Array[int] = []
+        if data & LINK_POS_X:
+            out.append(Settings.get_grid_index(Vector2i(x + 1, y)))
+        if data & LINK_POS_Y:
+            out.append(Settings.get_grid_index(Vector2i(x, y + 1)))
+        if data & LINK_NEG_X:
+            out.append(Settings.get_grid_index(Vector2i(x - 1, y)))
+        if data & LINK_NEG_Y:
+            out.append(Settings.get_grid_index(Vector2i(x, y - 1)))
+        return out
+    
+    
+    func init_build(grid_data: PackedByteArray, color_num: int) -> void:
+        _read_only_grid_data = grid_data
+        colored_sources.clear()
+        for i in color_num:
+            var tmp := SourceDef.new()
+            tmp.color_idx = i
+            colored_sources.append(tmp)
+        rebuild()
+    
+    
+    func rebuild() -> void:
+        LogFormatter.info("rebuilding...", "PS.PathFinder")
+        rebuilding = true
+        _reset_buff()
+        for source_def : SourceDef in colored_sources:
+            source_def.reset()
+            for source in source_def.sources:
+                _write(source, source_def.color_idx)
+        return
+    
+    
+    func update(caculate_limit: int = INT32_MAX) -> void:
+        if not rebuilding:
+            return
+        var step := 0
+        while usage > 0 and step < caculate_limit:
+            var cur := _read()
+            for idx : int in get_linked_points(cur.x):
+                if idx == Settings.DIRTY_DATA_INDEX:
+                    continue
+                if colored_sources.get(cur.y).parent.has(cur.x):
+                    continue
+                _write(idx, cur.y)
+                step += 1
+        if usage == 0:
+            rebuilding = false
+            LogFormatter.info("rebuild ended.", "PS.PathFinder")
+
+
+class SourceDef extends RefCounted:
+    
+    const SOURCE := -1
+    
+    var color_idx: int
+    var parent: Dictionary[int, int] = {}
+    var sources := PackedInt32Array()
+    
+    
+    func add_source(idx: int) -> void:
+        if sources.has(idx):
+            return
+        sources.append(idx)
+    
+    
+    func reset() -> void:
+        parent.clear()
+        for source : int in sources:
+            parent[source] = SOURCE
+    
+    
+    func visited(idx: int) -> bool:
+        return parent.has(idx)
