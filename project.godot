@@ -16,6 +16,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+LogFormatter="*uid://bulx3uli6uu5w"
 Settings="*uid://u8bha4qqcxmg"
 
 [editor_plugins]
