@@ -5,6 +5,8 @@ var formatted_msg := "> %s [%-*s] %-*s: %s"
 var level_fill: int = 5
 var from_fill:  int = 20
 
+var tail_msg_indents: int = 6
+
 var date: String = ""
 
 func _log_out(
@@ -28,3 +30,27 @@ func _log_out(
 
 func info(msg: StringName, from: StringName = "UNKNOWN") -> void:
     _log_out(print, "INFO", from, msg)
+
+
+func debug(
+    msg: StringName,
+    from: StringName = "UNKNOWN",
+    ...args: Array
+) -> void:
+    _log_out(print, "DEBUG", from, msg)
+    for arg : Variant in args:
+        print("%*s", tail_msg_indents, arg)
+
+
+func smart_info(
+    msg: StringName,
+    from: StringName = "UNKNOWN",
+    ...debug_msgs: Array
+) -> void:
+    if not OS.is_debug_build():
+        info(msg, from)
+        return
+    # debug
+    var tmp: Array = [msg, from]
+    tmp.append_array(debug_msgs)
+    debug.callv(tmp)
