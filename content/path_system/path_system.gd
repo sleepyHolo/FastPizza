@@ -59,14 +59,16 @@ func _draw() -> void:
 
 
 func _physics_process(delta: float) -> void:
-    path_finder.update()
-    
     if unselecting:
         remove_path(Settings.get_grid_pos(get_global_mouse_position()))
         # todo caculate used path
         if OS.is_debug_build():
             remove_node(Settings.get_grid_pos(get_global_mouse_position()))
     queue_redraw()
+
+
+func _process(delta: float) -> void:
+    path_finder.update()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -349,8 +351,9 @@ class PathFinder extends RefCounted:
             for idx : int in get_linked_points(cur.x):
                 if idx == Settings.DIRTY_DATA_INDEX:
                     continue
-                if colored_sources.get(cur.y).parent.has(cur.x):
+                if colored_sources.get(cur.y).parent.has(idx):
                     continue
+                colored_sources.get(cur.y).parent[idx] = cur.x
                 _write(idx, cur.y)
                 step += 1
         time_usage_us += Time.get_ticks_usec() - tmp_time_start
@@ -371,6 +374,51 @@ class PathFinder extends RefCounted:
     
     func remove_source(idx: int, color: int) -> void:
         colored_sources.get(color).remove_source(idx)
+    
+    
+    func _visited(grid: int, source_color: int) -> bool:
+        return colored_sources.get(source_color).visited(grid)
+    
+    
+    func visitable(sink: int, source_color: int) -> bool:
+        if _visited(sink, source_color):
+            return true
+        if rebuilding:
+            # todo use a better? way
+            update()
+            return _visited(sink, source_color)
+        return false
+    
+    
+    func query(
+        sink: int,
+        source_color: int,
+        reverse: bool = true,
+    ) -> Array[int]:
+        if not visitable(sink, source_color):
+            return []
+        var tmp: Array[int] = []
+        var cur := sink
+        while colored_sources[source_color].parent[cur] != SourceDef.SOURCE:
+            tmp.append(cur)
+            cur = colored_sources[source_color].parent[cur]
+        if reverse:
+            tmp.reverse()
+        return tmp
+    
+    
+    func query_vector(
+        sink: int,
+        source_color: int,
+        reverse: bool = true,
+    ) -> Array[Vector2i]:
+        var tmp: Array[Vector2i] = []
+        for idx : int in query(sink, source_color, reverse):
+            tmp.append(Vector2i(
+                idx % Settings.map_size_max.x,
+                floori(float(idx) / Settings.map_size_max.x),
+            ))
+        return tmp
 
 
 class SourceDef extends RefCounted:
