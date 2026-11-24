@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://c321usd568bmy"]
+
+[ext_resource type="Script" uid="uid://bh3wvgg72c6lp" path="res://content/logic_system/logic_system.gd" id="1_07ivu"]
+
+[node name="LogicSystem" type="Node2D" unique_id=1170845548]
+script = ExtResource("1_07ivu")
+metadata/_custom_type_script = "uid://bh3wvgg72c6lp"
+
+[node name="WeeklyTimer" type="Timer" parent="." unique_id=674128348]
+process_callback = 0
+one_shot = true
+
+[connection signal="timeout" from="WeeklyTimer" to="." method="_on_weekly_timer_timeout"]

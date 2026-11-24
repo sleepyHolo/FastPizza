@@ -1,5 +1,7 @@
 class_name PathSystem
-extends Node2D
+extends MapDef.System
+
+signal init
 
 var _grid_data: PackedByteArray
 var _path_nodes: Dictionary[int, Node2D] = {}
@@ -99,6 +101,12 @@ func _unhandled_input(event: InputEvent) -> void:
         unselecting = false
         get_viewport().set_input_as_handled()
         return
+
+
+func _on_map_def_ready() -> void:
+    init.emit(
+        _grid_data,
+    )
 
 
 func path_diff(from: Vector2i, to: Vector2i) -> int:
