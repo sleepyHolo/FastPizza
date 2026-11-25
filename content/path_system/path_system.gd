@@ -1,5 +1,5 @@
 class_name PathSystem
-extends MapDef.System
+extends System
 
 signal init
 

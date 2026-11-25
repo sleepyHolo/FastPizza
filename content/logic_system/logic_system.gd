@@ -1,5 +1,5 @@
 class_name LogicSystem
-extends MapDef.System
+extends System
 
 @onready
 var weekly_timer: Timer = $WeeklyTimer
