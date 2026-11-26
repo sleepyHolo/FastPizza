@@ -4,7 +4,7 @@ extends System
 signal init
 
 var _grid_data: PackedByteArray
-var _path_nodes: Dictionary[int, Node2D] = {}
+var _path_nodes: Dictionary[int, PathNode] = {}
 
 var path_linking: bool = false
 var linking_paths : Array[Vector2i] = []
@@ -234,12 +234,13 @@ func spawn_node(
     if not _path_nodes.has(id):
         _grid_data[id] = (_grid_data[id] >> 6) << 6
         if is_source:
-            _path_nodes[id] = Source.new(grid_pos)
+            _path_nodes[id] = Source.new()
             _grid_data[id] |= IS_SOURCE
             path_finder.add_source(id, source_color)
         else:
-            _path_nodes[id] = Sink.new(grid_pos)
+            _path_nodes[id] = Sink.new()
             _grid_data[id] |= IS_SINK
+        _path_nodes[id].grid_pos = grid_pos
         # todo add rototation 
         _grid_data[id] |= LINK_POS_X
         _grid_data[Settings.get_grid_index(grid_pos + Vector2i.RIGHT)] \
