@@ -1,5 +1,7 @@
 extends Node
 
+signal debugging_changed(_debugging: bool)
+
 var map_size_max: Vector2i = Vector2i(40, 25)
 var map_grid_size: Vector2i = Vector2i(64, 64)
 
@@ -10,7 +12,15 @@ var _map_grid_size_inv := Vector2(
     1.0 / map_grid_size.y
     )
 
+var debugging: bool = false:
+    set(value):
+        if debugging == value:
+            return
+        debugging = value
+        debugging_changed.emit(debugging)
+
 # debug settings
+var debug_z_index: int = 99
 var debug_color := Color(0.8, 0.16, 0.16, 1.0)
 
 var source_radius: float = 20.0
@@ -20,6 +30,10 @@ var truck_radius:  float = 10.0
 
 # path finder
 var ring_buffer_size: int = 1024
+
+
+func _init() -> void:
+    debugging = OS.is_debug_build()
 
 
 func check_grid_pos(grid_pos: Vector2i) -> bool:

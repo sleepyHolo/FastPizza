@@ -51,8 +51,6 @@ func _ready() -> void:
 func _draw() -> void:
     if not OS.is_debug_build():
         return
-    for id : int in _path_nodes:
-        draw_node(_path_nodes[id].position, _path_nodes[id] is Source)
     # build linked lines
     var pts := PackedVector2Array()
     for x in Settings.map_grid_size.x:
@@ -288,16 +286,7 @@ func spawn_node(
             "add a %s at %s" % ["source" if is_source else "sink", grid_pos],
             "PathSystem",
         )
-
-
-func draw_node(global_pos: Vector2, is_source: bool) -> void:
-    draw_circle(
-        global_pos,
-        Settings.source_radius if is_source else Settings.sink_radius,
-        Settings.debug_color,
-        is_source,
-        -1.0 if is_source else Settings.sink_width
-    )
+    return
 
 
 class PathFinder extends RefCounted:
