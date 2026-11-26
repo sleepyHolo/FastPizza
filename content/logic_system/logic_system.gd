@@ -21,7 +21,7 @@ func _on_path_system_init(
     _read_only_grid_data = grid_data
 
 
-func _connect_signals(system: MapDef.System) -> void:
+func _connect_signals(system: System) -> void:
     if system is PathSystem:
         system.init.connect(_on_path_system_init)
         return
