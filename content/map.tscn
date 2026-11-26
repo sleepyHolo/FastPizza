@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://g8x8bg6sswx6"]
 
-[ext_resource type="Script" uid="uid://bc7xuk7iwhab8" path="res://content/map_def/map_def.gd" id="1_3k68b"]
+[ext_resource type="Script" uid="uid://bc7xuk7iwhab8" path="res://content/systems/map_def/map_def.gd" id="1_3k68b"]
 [ext_resource type="PackedScene" uid="uid://d3yvmu38pb5h0" path="res://content/camera/player_camera.tscn" id="1_h3lc8"]
-[ext_resource type="PackedScene" uid="uid://busm2leuhmurf" path="res://content/path_system/path_system.tscn" id="3_3k68b"]
+[ext_resource type="PackedScene" uid="uid://busm2leuhmurf" path="res://content/systems/path_system/path_system.tscn" id="3_3k68b"]
 [ext_resource type="Script" uid="uid://dythjr1jrnt7l" path="res://content/grid.gd" id="3_wdavf"]
-[ext_resource type="PackedScene" uid="uid://c321usd568bmy" path="res://content/logic_system/logic_system.tscn" id="5_6ltrb"]
-[ext_resource type="PackedScene" uid="uid://cgo5ebitpsv8d" path="res://content/dispatching_system/dispatching_system.tscn" id="6_vgxck"]
+[ext_resource type="PackedScene" uid="uid://c321usd568bmy" path="res://content/systems/logic_system/logic_system.tscn" id="5_6ltrb"]
+[ext_resource type="PackedScene" uid="uid://cgo5ebitpsv8d" path="res://content/systems/dispatching_system/dispatching_system.tscn" id="6_vgxck"]
 
 [node name="Map" type="Node2D" unique_id=913156521]
 script = ExtResource("1_3k68b")
