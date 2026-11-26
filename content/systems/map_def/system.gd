@@ -8,6 +8,12 @@ func _enter_tree() -> void:
         parent.ready.connect(_on_map_def_ready)
 
 
+func _exit_tree() -> void:
+    var parent := get_parent()
+    if parent != null:
+        parent.ready.disconnect(_on_map_def_ready)
+
+
 func _connect_signals(_system: System) -> void:
     pass
 

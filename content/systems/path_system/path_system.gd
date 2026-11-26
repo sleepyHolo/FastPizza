@@ -25,6 +25,20 @@ const IS_SOURCE  := 0b010000
 const IS_SINK    := 0b100000
 
 
+func _enter_tree() -> void:
+    super()
+    get_tree().node_added.connect(_on_scene_tree_node_added)
+    var nodes := get_tree().get_nodes_in_group(&"sources")
+    nodes.append_array(get_tree().get_nodes_in_group(&"sinks"))
+    for node : Node in nodes:
+        _on_scene_tree_node_added(node)
+
+
+func _exit_tree() -> void:
+    super()
+    get_tree().node_added.disconnect(_on_scene_tree_node_added)
+
+
 func _ready() -> void:
     _grid_data.resize(Settings.get_map_size())
     path_finder = PathFinder.new()
@@ -110,6 +124,21 @@ func _on_map_def_ready() -> void:
     )
 
 
+func _on_scene_tree_node_added(node: Node) -> void:
+    if node is not PathNode:
+        return
+    node = node as PathNode
+    var link := node.node_link as int
+    _grid_data[Settings.get_grid_index(node.grid_pos)] |= link
+    if link & 0b11:
+        _grid_data[Settings.get_grid_index(node.grid_pos + link_to(link))] \
+            |= (link << 2)
+    else:
+        _grid_data[Settings.get_grid_index(node.grid_pos + link_to(link))] \
+            |= (link >> 2)
+    return
+
+
 func path_diff(from: Vector2i, to: Vector2i) -> int:
     var diff := to - from
     assert(diff.length_squared() == 1)
@@ -122,6 +151,18 @@ func path_diff(from: Vector2i, to: Vector2i) -> int:
     if diff == Vector2i(0, -1):
         return LINK_NEG_Y
     return 0
+
+
+func link_to(link: int) -> Vector2i:
+    if link == LINK_POS_X:
+        return Vector2i(1, 0)
+    if link == LINK_POS_Y:
+        return Vector2i(0, 1)
+    if link == LINK_NEG_X:
+        return Vector2i(-1, 0)
+    if link == LINK_NEG_Y:
+        return Vector2i(0, -1)
+    return Vector2i.ZERO
 
 
 func commit_path() -> void:
@@ -241,10 +282,6 @@ func spawn_node(
             _path_nodes[id] = Sink.new()
             _grid_data[id] |= IS_SINK
         _path_nodes[id].grid_pos = grid_pos
-        # todo add rototation 
-        _grid_data[id] |= LINK_POS_X
-        _grid_data[Settings.get_grid_index(grid_pos + Vector2i.RIGHT)] \
-            |= LINK_NEG_X
         add_child(_path_nodes[id])
         path_finder.rebuild()
         LogFormatter.debug(
