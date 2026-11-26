@@ -7,10 +7,7 @@ extends Node2D
 var grid_pos := Vector2i.ZERO:
     set(pos):
         grid_pos = pos
-        position = Settings.get_global_pos(grid_pos)
-        print(grid_pos)
-        print(position)
-        print(global_position)
+        global_position = Settings.get_global_pos(grid_pos)
         return
 
 @export
