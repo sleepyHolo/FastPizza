@@ -16,9 +16,10 @@ func _on_weekly_timer_timeout() -> void:
 
 
 func _on_path_system_init(
-    grid_data: PackedByteArray,
+    _grid_data: PackedByteArray,
+    _path_finder: PathSystem.PathFinder
 ) -> void:
-    _read_only_grid_data = grid_data
+    _read_only_grid_data = _grid_data
 
 
 func _connect_signals(system: System) -> void:

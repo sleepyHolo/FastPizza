@@ -106,6 +106,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_map_def_ready() -> void:
     init.emit(
         _grid_data,
+        path_finder,
     )
 
 
