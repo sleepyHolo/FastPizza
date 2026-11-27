@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://dythjr1jrnt7l" path="res://content/grid.gd" id="3_wdavf"]
 [ext_resource type="PackedScene" uid="uid://c321usd568bmy" path="res://content/systems/logic_system/logic_system.tscn" id="5_6ltrb"]
 [ext_resource type="PackedScene" uid="uid://cgo5ebitpsv8d" path="res://content/systems/dispatching_system/dispatching_system.tscn" id="6_vgxck"]
+[ext_resource type="PackedScene" uid="uid://bd8ohrbwjkm7d" path="res://content/buildings/main_factory/main_factory.tscn" id="7_q2ta7"]
 
 [node name="Map" type="Node2D" unique_id=913156521]
 script = ExtResource("1_3k68b")
@@ -21,3 +22,5 @@ cell_size = Vector2i(64, 64)
 [node name="LogicSystem" parent="." unique_id=1973800260 instance=ExtResource("5_6ltrb")]
 
 [node name="DispatchingSystem" parent="." unique_id=1705938502 instance=ExtResource("6_vgxck")]
+
+[node name="MainFactory" parent="." unique_id=1844912684 instance=ExtResource("7_q2ta7")]

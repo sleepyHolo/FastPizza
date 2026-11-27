@@ -4,6 +4,8 @@ extends Node2D
 
 
 @export 
+var relative_grid_pos := Vector2i.ZERO
+
 var grid_pos := Vector2i.ZERO:
     set(pos):
         grid_pos = pos

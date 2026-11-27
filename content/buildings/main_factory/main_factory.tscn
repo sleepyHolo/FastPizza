@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://bd8ohrbwjkm7d"]
+
+[ext_resource type="Script" uid="uid://cpkheu7ubt4hk" path="res://content/buildings/main_factory/main_factory.gd" id="1_pdk0h"]
+[ext_resource type="Script" uid="uid://dr33nr0v35iup" path="res://content/systems/path_system/source.gd" id="2_056go"]
+
+[node name="MainFactory" type="Node2D" unique_id=1844912684 node_paths=PackedStringArray("sources")]
+script = ExtResource("1_pdk0h")
+sources = [NodePath("SourceLT"), NodePath("SourceRT"), NodePath("SourceLB"), NodePath("SourceRB")]
+metadata/_custom_type_script = "uid://cpkheu7ubt4hk"
+
+[node name="SourceLT" type="Node2D" parent="." unique_id=1511015021 groups=["sources"]]
+script = ExtResource("2_056go")
+relative_grid_pos = Vector2i(-1, -1)
+node_link = 8
+metadata/_custom_type_script = "uid://dr33nr0v35iup"
+
+[node name="SourceRT" type="Node2D" parent="." unique_id=2125582323 groups=["sources"]]
+script = ExtResource("2_056go")
+relative_grid_pos = Vector2i(1, -1)
+node_link = 8
+metadata/_custom_type_script = "uid://dr33nr0v35iup"
+
+[node name="SourceLB" type="Node2D" parent="." unique_id=1819067556 groups=["sources"]]
+script = ExtResource("2_056go")
+relative_grid_pos = Vector2i(-1, 1)
+node_link = 2
+metadata/_custom_type_script = "uid://dr33nr0v35iup"
+
+[node name="SourceRB" type="Node2D" parent="." unique_id=1287707770 groups=["sources"]]
+script = ExtResource("2_056go")
+relative_grid_pos = Vector2i(1, 1)
+node_link = 2
+metadata/_custom_type_script = "uid://dr33nr0v35iup"

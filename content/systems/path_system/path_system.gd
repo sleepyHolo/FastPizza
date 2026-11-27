@@ -25,15 +25,6 @@ const IS_SOURCE  := 0b010000
 const IS_SINK    := 0b100000
 
 
-func _enter_tree() -> void:
-    super()
-    get_tree().node_added.connect(_on_scene_tree_node_added)
-    var nodes := get_tree().get_nodes_in_group(&"sources")
-    nodes.append_array(get_tree().get_nodes_in_group(&"sinks"))
-    for node : Node in nodes:
-        _on_scene_tree_node_added(node)
-
-
 func _exit_tree() -> void:
     super()
     get_tree().node_added.disconnect(_on_scene_tree_node_added)
@@ -116,6 +107,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_map_def_ready() -> void:
+    # build links
+    get_tree().node_added.connect(_on_scene_tree_node_added)
+    var nodes := get_tree().get_nodes_in_group(&"sources")
+    nodes.append_array(get_tree().get_nodes_in_group(&"sinks"))
+    for node : Node in nodes:
+        _on_scene_tree_node_added(node)
+    
     init.emit(
         _grid_data,
         path_finder,
