@@ -6,6 +6,7 @@
 [node name="MainFactory" type="Node2D" unique_id=1844912684 node_paths=PackedStringArray("sources")]
 script = ExtResource("1_pdk0h")
 sources = [NodePath("SourceLT"), NodePath("SourceRT"), NodePath("SourceLB"), NodePath("SourceRB")]
+size = Vector2i(2, 1)
 metadata/_custom_type_script = "uid://cpkheu7ubt4hk"
 
 [node name="SourceLT" type="Node2D" parent="." unique_id=1511015021 groups=["sources"]]
