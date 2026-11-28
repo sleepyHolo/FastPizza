@@ -4,6 +4,12 @@ extends PathNode
 var car_num: int = 0
 
 
+func _enter_tree() -> void:
+    super()
+    if not is_in_group(&"sources"):
+        add_to_group(&"sources")
+
+
 func _draw() -> void:
     draw_circle(
         Vector2.ZERO,

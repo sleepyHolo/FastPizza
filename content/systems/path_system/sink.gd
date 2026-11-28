@@ -7,6 +7,12 @@ signal delivery
 var demand_int: int = 0
 
 
+func _enter_tree() -> void:
+    super()
+    if not is_in_group(&"sinks"):
+        add_to_group(&"sinks")
+
+
 func _draw() -> void:
     draw_circle(
         Vector2.ZERO,

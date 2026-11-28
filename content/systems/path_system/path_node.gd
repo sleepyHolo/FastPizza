@@ -15,7 +15,6 @@ var grid_pos := Vector2i.ZERO:
 @export
 var node_link : PathNodeLink = PathNodeLink.LINK_POS_X
 
-
 func _enter_tree() -> void:
     z_index = Settings.debug_z_index
     Settings.debugging_changed.connect(_on_settings_debugging_changed)
