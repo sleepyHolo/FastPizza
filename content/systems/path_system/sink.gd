@@ -1,7 +1,9 @@
 class_name Sink
 extends PathNode
 
-signal demand
+signal demand(
+    idx: int,
+)
 signal delivery
 
 var demand_int: int = 0
@@ -38,4 +40,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func more_demand() -> void:
     demand_int += 1
+    demand.emit(
+        Settings.get_grid_index(grid_pos),
+    )
     queue_redraw()

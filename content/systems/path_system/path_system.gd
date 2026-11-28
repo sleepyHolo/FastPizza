@@ -124,6 +124,11 @@ func _on_scene_tree_node_added(node: Node) -> void:
     if node is not PathNode:
         return
     node = node as PathNode
+    if node is Source:
+        path_finder.add_source(
+            Settings.get_grid_index(node.grid_pos),
+            0,
+        )
     var link := node.node_link as int
     _grid_data[Settings.get_grid_index(node.grid_pos)] |= link
     if link & 0b11:
@@ -436,6 +441,8 @@ class PathFinder extends RefCounted:
         while colored_sources[source_color].parent[cur] != SourceDef.SOURCE:
             tmp.append(cur)
             cur = colored_sources[source_color].parent[cur]
+        # add source
+        tmp.append(cur)
         if reverse:
             tmp.reverse()
         return tmp
