@@ -15,7 +15,21 @@ func _draw() -> void:
         false,
         Settings.sink_width,
     )
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2.ZERO,
+        "%s" % demand_int,
+    )
+
+
+func _unhandled_input(event: InputEvent) -> void:
+    if Settings.debugging and event.is_action_pressed("select"):
+        if _check_input_grid():
+            more_demand()
+            get_viewport().set_input_as_handled()
+    return
 
 
 func more_demand() -> void:
-    pass
+    demand_int += 1
+    queue_redraw()

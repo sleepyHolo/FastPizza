@@ -30,6 +30,11 @@ func _on_settings_debugging_changed(_debugging: bool) -> void:
     visible = _debugging
 
 
+func _check_input_grid() -> bool:
+    var mouse_grid := Settings.get_grid_pos(get_global_mouse_position())
+    return mouse_grid == grid_pos
+
+
 enum PathNodeLink {
     LINK_POS_X = PathSystem.LINK_POS_X,
     LINK_POS_Y = PathSystem.LINK_POS_Y,
